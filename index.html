@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF & Image Merger</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #4a90e2;
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            color: #777;
+            margin-bottom: 30px;
+        }
+
+        /* File Input */
+        .file-input {
+            border: 2px dashed #4a90e2;
+            padding: 30px;
+            border-radius: 10px;
+            background-color: #fff;
+            cursor: pointer;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+
+        .file-input:hover {
+            border-color: #6ab0f3;
+        }
+
+        .file-input input {
+            display: none;
+        }
+
+        .file-input label {
+            font-size: 1.1rem;
+            color: #4a90e2;
+            cursor: pointer;
+        }
+
+        /* File Summary */
+        .file-summary {
+            margin-top: 20px;
+            font-size: 1rem;
+            color: #555;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 10px;
+            background-color: #4a90e2;
+            transition: width 0.3s;
+        }
+
+        /* Status */
+        .status {
+            margin-top: 10px;
+            font-size: 1rem;
+            color: #777;
+        }
+
+        /* Buttons */
+        .btn {
+            background-color: #4a90e2;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #6ab0f3;
+        }
+
+        .btn:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+
+        /* Meme Template */
+        .meme-template {
+            margin-top: 20px;
+            display: none; /* Hidden by default */
+        }
+
+        .meme-template img {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 40px;
+            font-size: 0.9rem;
+            color: #777;
+        }
+
+        footer a {
+            color: #4a90e2;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <h1>PDF & Image Merger</h1>
+        <p class="tagline">Merge your images and PDFs into a single, searchable PDF.</p>
+
+        <!-- File Input -->
+        <div class="file-input" onclick="document.getElementById('file-input').click()">
+            <input type="file" id="file-input" accept="image/*, application/pdf" multiple />
+            <label for="file-input">📁 Drag & drop files or click to upload</label>
+        </div>
+
+        <!-- File Summary -->
+        <div class="file-summary" id="file-summary"></div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+        </div>
+
+        <!-- Meme Template -->
+        <div class="meme-template" id="meme-template">
+            <img src="https://example.com/meme.jpg" alt="Processing Meme" />
+        </div>
+
+        <!-- Status -->
+        <div class="status" id="status">Processing 0 of 0 files...</div>
+
+        <!-- Convert Button -->
+        <button id="convert-btn" class="btn" disabled>Merge and Download PDF</button>
+
+        <!-- Footer -->
+        <footer>
+            Specially built for FDC by <a href="https://www.instagram.com/siddhxxt/" target="_blank">Mukund Choudhary</a>
+        </footer>
+    </div>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+
+        let files = []; // Array to store selected files
+        const BATCH_SIZE = 50; // Number of files to process at a time
+        const memeImageUrl = "https://media1.tenor.com/m/7x0W59u0TEQAAAAd/phir-hera-pheri-kam-se-kam30saal-ka-toh-time-de-re.gif"; // Replace with your meme image URL
+
+        // File Input Handler
+        document.getElementById('file-input').addEventListener('change', function(event) {
+            files = Array.from(event.target.files); // Convert FileList to an array
+            if (files.length > 0) {
+                // Enable the button
+                document.getElementById('convert-btn').disabled = false;
+
+                // Update file summary
+                const imageCount = files.filter(file => file.type.startsWith('image/')).length;
+                const pdfCount = files.filter(file => file.type === 'application/pdf').length;
+                document.getElementById('file-summary').innerHTML = `
+                    <strong>Files Selected:</strong> ${files.length}<br>
+                    <strong>Images:</strong> ${imageCount}<br>
+                    <strong>PDFs:</strong> ${pdfCount}
+                `;
+
+                // Show meme template if more than 500 files
+                if (files.length > 500) {
+                    console.log("More than 500 files selected. Showing meme template."); // Debugging
+                    document.getElementById('meme-template').style.display = 'block';
+                } else {
+                    console.log("Less than or equal to 500 files selected. Hiding meme template."); // Debugging
+                    document.getElementById('meme-template').style.display = 'none';
+                }
+            }
+        });
+
+        // Convert Button Handler
+        document.getElementById('convert-btn').addEventListener('click', async function() {
+            if (files.length === 0) return;
+
+            // Show progress bar and status
+            const progressContainer = document.querySelector('.progress-container');
+            const progressBar = document.querySelector('.progress-bar');
+            const status = document.getElementById('status');
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            status.textContent = `Processing 0 of ${files.length} files...`;
+
+            // Disable the button during conversion
+            document.getElementById('convert-btn').disabled = true;
+
+            // Create a new PDF document
+            const pdfDoc = await PDFLib.PDFDocument.create();
+
+            // Process files in batches
+            for (let i = 0; i < files.length; i += BATCH_SIZE) {
+                const batch = files.slice(i, i + BATCH_SIZE);
+                await processBatch(batch, pdfDoc, i, files.length, progressBar, status);
+            }
+
+            // Save the final PDF
+            const pdfBytes = await pdfDoc.save();
+            const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+
+            // Trigger download
+            saveAs(pdfBlob, "merged_files.pdf");
+
+            // Re-enable the button after conversion
+            document.getElementById('convert-btn').disabled = false;
+            alert('All files have been merged into a single PDF!');
+        });
+
+        // Batch Processing Function
+        async function processBatch(batch, pdfDoc, startIndex, totalFiles, progressBar, status) {
+            for (let i = 0; i < batch.length; i++) {
+                const file = batch[i];
+                const fileName = file.name.split('.').slice(0, -1).join('.'); // Extract filename without extension
+
+                if (file.type.startsWith('image/')) {
+                    // Process image files
+                    await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = async function(e) {
+                            const img = new Image();
+                            img.src = e.target.result;
+                            img.onload = async function() {
+                                // Create a new PDF page with the exact dimensions of the image
+                                const [width, height] = [img.naturalWidth, img.naturalHeight];
+                                const imagePage = await pdfDoc.addPage([width, height]);
+
+                                // Embed the image in the PDF page
+                                const imageBytes = await fetch(img.src).then((res) => res.arrayBuffer());
+                                let image;
+                                if (file.type === 'image/png') {
+                                    image = await pdfDoc.embedPng(imageBytes); // Handle PNG
+                                } else {
+                                    image = await pdfDoc.embedJpg(imageBytes); // Handle JPEG/JPG
+                                }
+                                imagePage.drawImage(image, {
+                                    x: 0,
+                                    y: 0,
+                                    width: width,
+                                    height: height,
+                                });
+
+                                // Add the watermark (filename as text)
+                                imagePage.drawText(fileName, {
+                                    x: 10,
+                                    y: height - 20,
+                                    size: 20,
+                                    color: PDFLib.rgb(0.5, 0.5, 0.5), // Light gray color
+                                });
+
+                                // Update progress bar and status
+                                const processedFiles = startIndex + i + 1;
+                                progressBar.style.width = `${(processedFiles / totalFiles) * 100}%`;
+                                status.textContent = `Processing ${processedFiles} of ${totalFiles} files...`;
+                                resolve();
+                            };
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                } else if (file.type === 'application/pdf') {
+                    // Process PDF files
+                    await new Promise(async (resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = async function(e) {
+                            const pdfBytes = new Uint8Array(e.target.result);
+                            const externalPdf = await PDFLib.PDFDocument.load(pdfBytes);
+                            const copiedPages = await pdfDoc.copyPages(externalPdf, externalPdf.getPageIndices());
+
+                            // Add each page to the final PDF
+                            copiedPages.forEach((page) => {
+                                // Add the watermark (filename as text)
+                                const { width, height } = page.getSize();
+                                page.drawText(fileName, {
+                                    x: 10,
+                                    y: height - 20,
+                                    size: 20,
+                                    color: PDFLib.rgb(0.5, 0.5, 0.5), // Light gray color
+                                });
+                                pdfDoc.addPage(page);
+                            });
+
+                            // Update progress bar and status
+                            const processedFiles = startIndex + i + 1;
+                            progressBar.style.width = `${(processedFiles / totalFiles) * 100}%`;
+                            status.textContent = `Processing ${processedFiles} of ${totalFiles} files...`;
+                            resolve();
+                        };
+                        reader.readAsArrayBuffer(file);
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html>
