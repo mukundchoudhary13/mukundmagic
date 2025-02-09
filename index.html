@@ -145,13 +145,13 @@
 <body>
     <div class="container">
         <!-- Header -->
-        <h1>PDF & Image Merger</h1>
-        <p class="tagline">Merge your images and PDFs into a single, searchable PDF.</p>
+        <h1>MICS ka all in one PDF master tool </h1>
+        <p class="tagline"> FDC & GATI ke kripa se hume isse use karna pad raha hai.</p>
 
         <!-- File Input -->
         <div class="file-input" onclick="document.getElementById('file-input').click()">
             <input type="file" id="file-input" accept="image/*, application/pdf" multiple />
-            <label for="file-input">📁 Drag & drop files or click to upload</label>
+            <label for="file-input">📁 Maal upload karo select karke</label>
         </div>
 
         <!-- File Summary -->
@@ -162,20 +162,20 @@
             <div class="progress-bar"></div>
         </div>
 
-        <!-- Meme Template -->
+         <!-- Meme Template
         <div class="meme-template" id="meme-template">
             <img src="https://example.com/meme.jpg" alt="Processing Meme" />
-        </div>
+        </div> -->
 
         <!-- Status -->
         <div class="status" id="status">Processing 0 of 0 files...</div>
 
         <!-- Convert Button -->
-        <button id="convert-btn" class="btn" disabled>Merge and Download PDF</button>
+        <button id="convert-btn" class="btn" disabled>Click karke thoda wait karo :) </button>
 
         <!-- Footer -->
         <footer>
-            Specially built for FDC by <a href="https://www.instagram.com/siddhxxt/" target="_blank">Mukund Choudhary</a>
+            Tool buit by <a href="https://www.instagram.com/siddhxxt/" target="_blank">Mukund Narayan Choudhary</a>
         </footer>
     </div>
 
@@ -184,7 +184,7 @@
 
         let files = []; // Array to store selected files
         const BATCH_SIZE = 50; // Number of files to process at a time
-        const memeImageUrl = "https://media1.tenor.com/m/7x0W59u0TEQAAAAd/phir-hera-pheri-kam-se-kam30saal-ka-toh-time-de-re.gif"; // Replace with your meme image URL
+        // const memeImageUrl = "https://media1.tenor.com/m/7x0W59u0TEQAAAAd/phir-hera-pheri-kam-se-kam30saal-ka-toh-time-de-re.gif"; // Replace with your meme image URL
 
         // File Input Handler
         document.getElementById('file-input').addEventListener('change', function(event) {
@@ -246,7 +246,7 @@
 
             // Re-enable the button after conversion
             document.getElementById('convert-btn').disabled = false;
-            alert('All files have been merged into a single PDF!');
+            alert('Download folder mein aapka pdf chalgaya ok press karke recieve kare Gift Please');
         });
 
         // Batch Processing Function
